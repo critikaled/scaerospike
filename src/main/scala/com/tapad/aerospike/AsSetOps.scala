@@ -114,14 +114,8 @@ private[aerospike] class AsSet[K, V](private final val client: AsyncClient,
       def onFailure(exception: AerospikeException): Unit = result.failure(exception)
 
       def onSuccess(keys: Array[Key], records: Array[Record]): Unit = {
-        var i = 0
-        val size = keys.length
-        var data = Map.newBuilder[K, T]
-        while (i < size) {
-          data += keys(i).userKey.getObject.asInstanceOf[K] -> extract(records(i))
-          i += 1
-        }
-        result.success(data.result())
+        val data = (keys.map(_.userKey.getObject.asInstanceOf[K]) zip records.map(extract)).toMap
+        result.success(data)
       }
     }
     try {
